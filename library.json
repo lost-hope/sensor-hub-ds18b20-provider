@@ -1,0 +1,10 @@
+{
+  "name": "sensor-hub-ds18b20-provider",
+  "build": {
+    "libArchive": false
+  },
+  "dependencies": {
+    "paulstoffregen/OneWire": "^2.3.8",
+    "milesburton/DallasTemperature": "^4.0.6"
+  }
+}
