@@ -70,10 +70,13 @@ class DS18B20SensorUsermod : public Usermod {
 
   public:
     void setup() override {
-      if (pin < 0) { enabled = false; return; }
+      // Neither branch touches 'enabled' (the user's own on/off switch,
+      // persisted to config) - initDone (left false here) is what actually
+      // gates loop(), so a later pin fix takes effect on the next boot
+      // instead of staying stuck disabled.
+      if (pin < 0) return;
       if (!PinManager::allocatePin(pin, true, PinOwner::UM_Unspecified)) {
-        enabled = false;
-        pin = -1;
+        pin = -1; // conflicts with another pin owner - force reconfiguration
         return;
       }
       oneWire = new OneWire(pin);
