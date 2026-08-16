@@ -46,6 +46,7 @@ class DS18B20SensorUsermod : public Usermod {
     uint16_t checkIntervalS = 30;   // how often to start a new read cycle
     String namePrefix = "ds18b20";  // sensor name becomes "<prefix>_temperature"
     uint8_t precision = 1;          // decimal places published
+    uint8_t priority = 100;         // getValue() selection priority - lower wins among sensors of the same SensorType (see sensor_bus.h)
 
     static const char _name[];
     static const char _enabled[];
@@ -53,10 +54,11 @@ class DS18B20SensorUsermod : public Usermod {
     static const char _checkInterval[];
     static const char _namePrefix[];
     static const char _precision[];
+    static const char _priority[];
 
     void registerSensors() {
       if (!hub || tempHandle != SENSOR_HANDLE_INVALID) return; // already registered
-      tempHandle = hub->registerSensor((namePrefix + "_temperature").c_str(), SensorType::Temperature, nullptr, nullptr, precision);
+      tempHandle = hub->registerSensor((namePrefix + "_temperature").c_str(), SensorType::Temperature, nullptr, nullptr, precision, priority);
     }
 
     bool beginSensor() {
@@ -130,6 +132,7 @@ class DS18B20SensorUsermod : public Usermod {
       top[FPSTR(_checkInterval)] = checkIntervalS;
       top[FPSTR(_namePrefix)] = namePrefix;
       top[FPSTR(_precision)] = precision;
+      top[FPSTR(_priority)] = priority;
     }
 
     bool readFromConfig(JsonObject& root) override {
@@ -142,6 +145,7 @@ class DS18B20SensorUsermod : public Usermod {
       configComplete &= getJsonValue(top[FPSTR(_checkInterval)], checkIntervalS);
       configComplete &= getJsonValue(top[FPSTR(_namePrefix)], namePrefix);
       configComplete &= getJsonValue(top[FPSTR(_precision)], precision);
+      configComplete &= getJsonValue(top[FPSTR(_priority)], priority);
 
       if (initDone && pin != oldPin) {
         // pin changed at runtime via the Settings UI - release the old one and re-init on the new one
@@ -162,6 +166,7 @@ class DS18B20SensorUsermod : public Usermod {
       settingsScript.print(F("addInfo('DS18B20Sensor:checkInterval',1,'seconds between read cycles');"));
       settingsScript.print(F("addInfo('DS18B20Sensor:namePrefix',1,'sensor name becomes &lt;prefix&gt;_temperature - must be unique across all sensor providers');"));
       settingsScript.print(F("addInfo('DS18B20Sensor:precision',1,'decimal places published');"));
+      settingsScript.print(F("addInfo('DS18B20Sensor:priority',1,'getValue() selection priority - lower wins if another provider also registers a Temperature sensor');"));
     }
 };
 
@@ -171,6 +176,7 @@ const char DS18B20SensorUsermod::_pin[]           PROGMEM = "pin";
 const char DS18B20SensorUsermod::_checkInterval[] PROGMEM = "checkInterval";
 const char DS18B20SensorUsermod::_namePrefix[]    PROGMEM = "namePrefix";
 const char DS18B20SensorUsermod::_precision[]     PROGMEM = "precision";
+const char DS18B20SensorUsermod::_priority[]      PROGMEM = "priority";
 
 static DS18B20SensorUsermod ds18b20_sensor;
 REGISTER_USERMOD(ds18b20_sensor);
