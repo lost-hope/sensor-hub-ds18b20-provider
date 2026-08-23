@@ -24,6 +24,9 @@
  * reads the result once that time has elapsed, so WLED's main loop is
  * never blocked waiting on the sensor.
  */
+
+REGISTER_SENSOR_SLOT(_slotTemp, "_temperature", SensorTypes::Temperature, 1, 100);
+
 class DS18B20SensorUsermod : public Usermod {
   private:
     OneWire* oneWire = nullptr;
@@ -58,7 +61,7 @@ class DS18B20SensorUsermod : public Usermod {
 
     void registerSensors() {
       if (!hub || tempHandle != SENSOR_HANDLE_INVALID) return; // already registered
-      tempHandle = hub->registerSensor((namePrefix + "_temperature").c_str(), SensorType::Temperature, nullptr, nullptr, precision, priority);
+      tempHandle = hub->attachSensor(&_slotTemp, namePrefix.c_str(), precision, priority);
     }
 
     bool beginSensor() {
